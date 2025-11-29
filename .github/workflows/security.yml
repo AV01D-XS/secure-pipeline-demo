@@ -1,0 +1,53 @@
+name: Ghost Security Pipeline
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  # JOB 1: SECRET SCANNING
+  # This finds the fake AWS keys in app.py
+  secret-scan:
+    name: 🕵️ Secret Scanner (TruffleHog)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Essential for scanning git history
+
+      - name: TruffleHog OSS
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+        # We use continue-on-error: true so the user can see all results
+        # In a real "Block" scenario, you would remove this.
+        continue-on-error: true 
+
+  # JOB 2: STATIC ANALYSIS (SAST)
+  # This finds the SQL Injection in app.py
+  code-scan:
+    name: 🛡️ Code Vulnerability Scan (Bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Run Bandit Scan
+        # Scans current directory (.) recursively (-r)
+        # -ll means report Medium and High severity issues
+        run: bandit -r . -ll
+        continue-on-error: true
