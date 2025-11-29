@@ -18,16 +18,12 @@ jobs:
         with:
           fetch-depth: 0 # Essential for scanning git history
 
+    # REPLACEMENT STEP
       - name: TruffleHog OSS
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
-          extra_args: --debug --only-verified
-        # We use continue-on-error: true so the user can see all results
-        # In a real "Block" scenario, you would remove this.
-        continue-on-error: true 
+        # We run the docker container directly to scan the current folder (.)
+        # This is bulletproof for demos.
+        run: docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest filesystem /pwd --fail
+        continue-on-error: true
 
   # JOB 2: STATIC ANALYSIS (SAST)
   # This finds the SQL Injection in app.py
