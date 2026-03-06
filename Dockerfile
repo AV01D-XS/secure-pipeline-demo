@@ -14,10 +14,10 @@ WORKDIR /app
 # Copy only requirements first to leverage Docker cache
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel
-
-# Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Upgrade base package managers to patch vendored CVEs, then install dependencies
+# hadolint ignore=DL3013
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
 COPY . .
