@@ -15,4 +15,4 @@ def get_status():
 if __name__ == '__main__':
     # Running on 0.0.0.0 for Docker containerization
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=port) # nosec B104
